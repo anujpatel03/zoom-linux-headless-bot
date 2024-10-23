@@ -1,3 +1,4 @@
+# Base stage
 FROM --platform=linux/amd64 ubuntu:22.04 AS base
 
 SHELL ["/bin/bash", "-c"]
@@ -41,14 +42,13 @@ RUN apt-get update  \
     pkgconf \
     tar \
     unzip \
-    zip
+    zip \
+    # Install ALSA and Pulseaudio
+    libasound2 libasound2-plugins alsa alsa-utils alsa-oss pulseaudio pulseaudio-utils \
+    # Install http-server to serve frontend
+    npm http-server -g
 
-# Install ALSA
-RUN apt-get install -y libasound2 libasound2-plugins alsa alsa-utils alsa-oss
-
-# Install Pulseaudio
-RUN apt-get install -y  pulseaudio pulseaudio-utils
-
+# Install Node.js and vcpkg
 FROM base AS deps
 
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh \
@@ -65,9 +65,15 @@ RUN git clone --depth 1 https://github.com/Microsoft/vcpkg.git \
     && ln -s /opt/vcpkg/vcpkg /usr/local/bin/vcpkg \
     && vcpkg install vcpkg-cmake
 
-FROM deps AS build
+# Add the frontend files and backend script (server.js)
+COPY client/web /usr/src/app/client/web
+COPY src/server.js /usr/src/app/server.js
 
+# Set the working directory for running the bot
 WORKDIR $cwd
+
+# Serve frontend and run backend server
+CMD http-server /usr/src/app/client/web -p 8080 & node /usr/src/app/server.js & ./bin/entry.sh
+
+# Entry point
 ENTRYPOINT ["/tini", "--", "./bin/entry.sh"]
-
-

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoom Bot Join</title>
+</head>
+<body>
+    <h1>Join Zoom Meeting</h1>
+    <form id="joinForm">
+        <label for="joinUrl">Enter Zoom Join URL:</label>
+        <input type="text" id="joinUrl" name="joinUrl" placeholder="Zoom Join URL" required>
+        <button type="submit">Join</button>
+    </form>
+
+    <script>
+        document.getElementById('joinForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const joinUrl = document.getElementById('joinUrl').value;
+
+            fetch('/api/join-meeting', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ joinUrl })
+            }).then(response => {
+                if (response.ok) {
+                    alert('Bot is joining the meeting!');
+                } else {
+                    alert('Failed to join the meeting');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
